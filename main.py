@@ -5,8 +5,14 @@ import numpy as np
 
 
 df= pd.read_csv('sp500.csv')
-volume = df['Volume']
-adjusted_close = df['Adj Close']
+dk = pd.read_csv('aapl.csv')
+nice = dk[['Close', 'Volume']]
+nice = tf.keras.layers.Reshape((-1, 14, 2))(nice)
+# volume = df['Volume']
+# adjusted_close = df['Adj Close']
+# print(volume)
+# print(adjusted_close)
+print(nice.shape)
 # print(volume)
 # print(adjusted_close)
 pd.read_csv('aapl.csv').head()
@@ -20,8 +26,6 @@ def pos_or_neg(a):
     else:
         to_return = 0
     return to_return
-
-
 
 
 apple_test = pd.read_csv('aapl.csv')

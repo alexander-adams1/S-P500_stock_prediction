@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./tensorflow/_api/v2/experimental",
+        "./pandas/compat"
+    ]
+}
