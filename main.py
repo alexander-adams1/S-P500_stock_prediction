@@ -6,13 +6,42 @@ import numpy as np
 
 df= pd.read_csv('sp500.csv')
 dk = pd.read_csv('aapl.csv')
-nice = dk[['Close', 'Volume']]
-nice = tf.keras.layers.Reshape((-1, 14, 2))(nice)
+real_data = df[['Adj Close', 'Volume']]
+nice = dk[['Adj Close', 'Volume']]
+dk['Prev_14_Close'] = dk['Close'].shift(14)
+dk['Prev_14_Volume'] = dk['Volume'].shift(14)
+
+# Drop the rows with missing values (since the first 14 rows will have NaN values)
+previous_close_points = dk['Prev_14_Close'].dropna().tolist()
+previous_volume_points = dk['Prev_14_Volume'].dropna().tolist()
+nparray = []
+realarray = []
+print(nice)
+# Print the resulting DataFrame
+for i in range(len(nice)):
+    if i > 13:
+    
+        nparray = np.append(nparray, nice[i - 14: i])
+        
+print(nparray.shape)
+reshaped_array = np.reshape(nparray, (-1, 14, 2))
+
+# Print the reshaped array
+print(reshaped_array.shape)
+print(reshaped_array)
+
+for i in range(len(real_data)):
+    if i > 13:
+        realarray = np.append(realarray, real_data[i - 14: i])
+        
+real_reshape = np.reshape(realarray, (-1, 14, 2))
+print(real_reshape.shape)
+# nice = tf.keras.layers.Reshape((-1, 14, 2))(nice)
 # volume = df['Volume']
 # adjusted_close = df['Adj Close']
 # print(volume)
 # print(adjusted_close)
-print(nice.shape)
+# print(nice.shape)
 # print(volume)
 # print(adjusted_close)
 pd.read_csv('aapl.csv').head()
