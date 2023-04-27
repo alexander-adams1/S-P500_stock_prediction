@@ -19,6 +19,16 @@ def get_inputs(dataframe):
     #return inputs which should be converted from the passed in dataframe to a numpy array
     #also convert the labels in the dataframe as part of the array
     #returns the array we need
+
+    df = dataframe[['Adj Close', 'Volume']]
+    modified_df = []
+    
+    for i in range(len(df)):
+        if i > 13:
+            modified_df = np.append(modified_df, df[i-14:i])
+    
+    reshaped_df = np.reshape(modified_df, (-1, 14, 2))
+
     inputs = None
     labels = None
     return inputs, labels
