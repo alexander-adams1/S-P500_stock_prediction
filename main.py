@@ -45,9 +45,12 @@ def main():
     model = Model()
     num_batches = len(train_inputs) // model.batch_size
     test_batches = len(test_inputs) // model.batch_size
+    print(num_batches)
+    print(test_batches)
     for i in range(10):
         train(model, train_inputs, train_labels, num_batches)
-        test(model, test_inputs, test_labels, test_batches)   
+    
+    test(model, test_inputs, test_labels, test_batches)   
     
 
 
@@ -57,12 +60,17 @@ class Model(tf.keras.Model):
         self.batch_size = 32
         self.loss_list = []
         self.flatten = tf.keras.layers.Flatten()
+        self.conv_weights = tf.random.truncated_normal(shape=[3, 1, 4], stddev=0.1)
+        self.dense = tf.keras.layers.Dense(1, activation = 'relu')
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.003)
         # self.optimizer = tf.keras.optimizers.RMSprop(learning_rate = 0.003)
 
     def call(self, inputs):
         print("test")
-        return 1
+        conv_layer = tf.keras.layers.Conv1D(filters=4, kernel_size=3, activation='relu', kernel_initializer=self.conv_weights)
+        flatten = self.flatten(conv_layer)
+        dense = self.dense(flatten)
+        return dense
 
 
     def loss(self, logits, labels):
@@ -113,9 +121,9 @@ def train(model, train_inputs, train_labels, num_batches):
         total_loss += loss
     return total_loss
     
-def test(model, test_inputs, test_labels, num_batches):
+def test(model, test_inputs, test_labels, test_batches):
     accuracy = []
-    for batch in range(num_batches):
+    for batch in range(test_batches):
         batch_start = batch * model.batch_size
         batch_end = (batch + 1) * model.batch_size
         batch_labels = test_labels[batch_start:batch_end]
