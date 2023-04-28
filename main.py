@@ -18,8 +18,8 @@ def main():
     sp500_with_labels = get_labels(sp500_dataframe)
     aapl_with_labels = get_labels(aapl_dataframe)
 
-    full_inputs, full_labels = get_inputs(sp500_with_labels)
-    apple_inputs, apple_labels = get_inputs(aapl_with_labels)
+    full_inputs = get_inputs(sp500_dataframe)
+    apple_inputs = get_inputs(aapl_dataframe)
 
     inputs = None
     labels = None

@@ -13,7 +13,10 @@ def read_csv(filepath):
 def get_labels(dataframe):
     dataframe['dif in close'] = dataframe['Adj Close'].diff()
     dataframe['labels'] = dataframe.apply(lambda x: pos_or_neg(x['dif in close']), axis=1)
-    return dataframe
+    num_rows = dataframe.shape[0]
+    dataframe = dataframe.tail(num_rows -14)
+    labels_tensor = tf.convert_to_tensor(dataframe['labels'].to_numpy())
+    return labels_tensor
 
 def get_inputs(dataframe):
     #return inputs which should be converted from the passed in dataframe to a numpy array
@@ -29,9 +32,9 @@ def get_inputs(dataframe):
     
     reshaped_df = np.reshape(modified_df, (-1, 14, 2))
 
-    inputs = None
-    labels = None
-    return inputs, labels
+    inputs = tf.convert_to_tensor(reshaped_df)
+
+    return inputs
 
 
 def pos_or_neg(a):
