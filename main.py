@@ -60,15 +60,17 @@ class Model(tf.keras.Model):
         self.batch_size = 32
         self.loss_list = []
         self.flatten = tf.keras.layers.Flatten()
-        self.conv_weights = tf.random.truncated_normal(shape=[3, 1, 4], stddev=0.1)
+        # self.conv_weights = tf.random.truncated_normal(shape=[3, 2, 4], stddev=0.1)
+        # self.conv_layer = tf.keras.layers.Conv1D(filters=4, kernel_size=3, activation='relu', kernel_initializer=self.conv_weights)
         self.dense = tf.keras.layers.Dense(1, activation = 'relu')
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.003)
+        
         # self.optimizer = tf.keras.optimizers.RMSprop(learning_rate = 0.003)
 
     def call(self, inputs):
         print("test")
-        conv_layer = tf.keras.layers.Conv1D(filters=4, kernel_size=3, activation='relu', kernel_initializer=self.conv_weights)
-        flatten = self.flatten(conv_layer)
+        # conv_layer = self.conv_layer(inputs)
+        flatten = self.flatten(inputs)
         dense = self.dense(flatten)
         return dense
 
@@ -113,6 +115,7 @@ def train(model, train_inputs, train_labels, num_batches):
         batch_end = (batch + 1) * model.batch_size
         batch_labels = train_labels[batch_start:batch_end]
         batch_inputs = train_inputs[batch_start:batch_end]
+    
         with tf.GradientTape() as tape:
             logits = model.call(batch_inputs)
             loss = model.loss(logits, batch_labels)
