@@ -15,17 +15,19 @@ def main():
     sp500_dataframe = read_csv('sp500.csv')
     aapl_dataframe = read_csv('aapl.csv')
 
-    sp500_with_labels = get_labels(sp500_dataframe)
-    aapl_with_labels = get_labels(aapl_dataframe)
+    sp500_labels = get_labels(sp500_dataframe)
+    # aapl_with_labels = get_labels(aapl_dataframe)
 
     full_inputs = get_inputs(sp500_dataframe)
-    apple_inputs = get_inputs(aapl_dataframe)
+    # apple_inputs = get_inputs(aapl_dataframe)
 
-    inputs = None
-    labels = None
+    inputs = full_inputs
+    labels = sp500_labels
 
     # print(sp500_with_labels)
 
+    train_inputs = None
+    train_labels = None
     test_inputs = None
     test_labels = None
 
