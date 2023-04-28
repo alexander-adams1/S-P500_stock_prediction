@@ -31,8 +31,8 @@ def main():
     
     
     shuffled_inputs, shuffled_labels = zip(*data)
-    print(np.shape(shuffled_inputs))
-    print(np.shape(shuffled_labels))
+    # print(np.shape(shuffled_inputs))
+    # print(np.shape(shuffled_labels))
     n  = int(len(shuffled_inputs) * 0.8)
     
     train_inputs = shuffled_inputs[: n]
@@ -59,8 +59,8 @@ class Model(tf.keras.Model):
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.003)
         # self.optimizer = tf.keras.optimizers.RMSprop(learning_rate = 0.003)
 
-    def call(self):
-        print(nice)
+    def call(self, inputs):
+        print("test")
         return 1
 
 
@@ -74,6 +74,7 @@ class Model(tf.keras.Model):
         :param labels: during training, matrix of shape (batch_size, self.num_classes) containing the train labels
         :return: the loss of the model as a Tensor
         """
+        # print()
         return tf.math.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels, logits))
 
 
@@ -95,7 +96,7 @@ class Model(tf.keras.Model):
 
         
 
-def train(self, model, train_inputs, train_labels, num_batches):
+def train(model, train_inputs, train_labels, num_batches):
     total_loss = 0
 
     for batch in range(num_batches):
@@ -104,14 +105,14 @@ def train(self, model, train_inputs, train_labels, num_batches):
         batch_labels = train_labels[batch_start:batch_end]
         batch_inputs = train_inputs[batch_start:batch_end]
         with tf.GradientTape() as tape:
-            logits = self.call(batch_inputs)
+            logits = model.call(batch_inputs)
             loss = model.loss(logits, batch_labels)
             grads = tape.gradient(loss, model.trainable_variables)
         model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
         total_loss += loss
     return total_loss
     
-def test(self, model, test_inputs, test_labels, num_batches):
+def test(model, test_inputs, test_labels, num_batches):
     accuracy = []
     for batch in range(num_batches):
         batch_start = batch * model.batch_size
@@ -119,7 +120,7 @@ def test(self, model, test_inputs, test_labels, num_batches):
         batch_labels = test_labels[batch_start:batch_end]
         batch_inputs = test_inputs[batch_start:batch_end]
         # with tf.GradientTape() as tape:
-        logits = self.call(batch_inputs)
+        logits = model.call(batch_inputs)
         accuracy.append(model.accuracy(logits, batch_labels))
         # grads = tape.gradient(loss, model.trainable_variables)
         # model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
@@ -129,47 +130,47 @@ def test(self, model, test_inputs, test_labels, num_batches):
 
     
 
-df= pd.read_csv('sp500.csv')
-dk = pd.read_csv('aapl.csv')
-real_data = df[['Adj Close', 'Volume']]
-df['dif in close'] = df['Adj Close'].diff()
-df['labels'] = df.apply(lambda x: pos_or_neg(x['dif in close']), axis=1)
-real_data_with_labels = df[['Adj Close', 'Volume', 'labels']]
+# df= pd.read_csv('sp500.csv')
+# dk = pd.read_csv('aapl.csv')
+# real_data = df[['Adj Close', 'Volume']]
+# df['dif in close'] = df['Adj Close'].diff()
+# df['labels'] = df.apply(lambda x: pos_or_neg(x['dif in close']), axis=1)
+# real_data_with_labels = df[['Adj Close', 'Volume', 'labels']]
 
-# print(real_data_with_labels)
+# # print(real_data_with_labels)
 
-nice = dk[['Adj Close', 'Volume']]
-dk['Prev_14_Close'] = dk['Close'].shift(14)
-dk['Prev_14_Volume'] = dk['Volume'].shift(14)
+# nice = dk[['Adj Close', 'Volume']]
+# dk['Prev_14_Close'] = dk['Close'].shift(14)
+# dk['Prev_14_Volume'] = dk['Volume'].shift(14)
 
-dk.head(20)
+# dk.head(20)
 
 # Drop the rows with missing values (since the first 14 rows will have NaN values)
-previous_close_points = dk['Prev_14_Close'].dropna().tolist()
-previous_volume_points = dk['Prev_14_Volume'].dropna().tolist()
-nparray = []
-realarray = []
-# print(nice)
-# Print the resulting DataFrame
-for i in range(len(nice)):
-    if i > 13:
+# previous_close_points = dk['Prev_14_Close'].dropna().tolist()
+# previous_volume_points = dk['Prev_14_Volume'].dropna().tolist()
+# nparray = []
+# realarray = []
+# # print(nice)
+# # Print the resulting DataFrame
+# for i in range(len(nice)):
+#     if i > 13:
     
-        nparray = np.append(nparray, nice[i - 14: i])
+#         nparray = np.append(nparray, nice[i - 14: i])
         
-# print(nparray.shape)
-reshaped_array = np.reshape(nparray, (-1, 14, 2))
+# # print(nparray.shape)
+# reshaped_array = np.reshape(nparray, (-1, 14, 2))
 
-# Print the reshaped array
-print('test reshaped array shape: ', reshaped_array.shape)
-# print(reshaped_array)
+# # Print the reshaped array
+# print('test reshaped array shape: ', reshaped_array.shape)
+# # print(reshaped_array)
 
-for i in range(len(real_data)):
-    if i > 13:
-        realarray = np.append(realarray, real_data[i - 14: i])
+# for i in range(len(real_data)):
+#     if i > 13:
+#         realarray = np.append(realarray, real_data[i - 14: i])
         
-real_reshape = np.reshape(realarray, (-1, 14, 2))
-print(real_reshape.shape)
-print(real_reshape)
+# real_reshape = np.reshape(realarray, (-1, 14, 2))
+# print(real_reshape.shape)
+# print(real_reshape)
 # # nice = tf.keras.layers.Reshape((-1, 14, 2))(nice)
 # # volume = df['Volume']
 # # adjusted_close = df['Adj Close']

@@ -10,12 +10,31 @@ def read_csv(filepath):
     dataframe = pd.read_csv(filepath)
     return dataframe
 
+# def check_for_zeros(dataframe):
+#     dataframe['dif in close'] = dataframe['Adj Close'].diff()
+#     dataframe['labels'] = dataframe.apply(lambda x: pos_or_neg(x['dif in close']), axis=1)
+#     for i in dataframe['labels']:
+#         if dataframe['labels'][i] == 0:
+#             print('zero')
+
+
 def get_labels(dataframe):
     dataframe['dif in close'] = dataframe['Adj Close'].diff()
     dataframe['labels'] = dataframe.apply(lambda x: pos_or_neg(x['dif in close']), axis=1)
     num_rows = dataframe.shape[0]
     dataframe = dataframe.tail(num_rows -14)
-    labels_tensor = tf.convert_to_tensor(dataframe['labels'].to_numpy())
+    # labels_tensor = tf.convert_to_tensor(dataframe['labels'].to_numpy())
+    labels_array = dataframe['labels'].to_numpy()
+    labels = []
+    for i in range(len(dataframe)):
+        if labels_array[i] == 1:
+            # labels_array[i] == [1, 0]
+            labels = np.append(labels, [1, 0])
+        else:
+            labels = np.append(labels, [0, 1])
+    reshaped = np.reshape(labels, (-1, 2))
+    labels_tensor = tf.convert_to_tensor(reshaped)
+    # print(labels_tensor.shape())
     return labels_tensor
 
 def get_inputs(dataframe):
