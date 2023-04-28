@@ -31,11 +31,11 @@ def main():
     test_inputs = None
     test_labels = None
 
-    # model = Model()
-    # for i in range(10):
-    #     train(model, inputs, labels)
-    #     print(test(model, test_inputs, test_labels))    
-    # pass
+    model = Model()
+    for i in range(10):
+        train(model, train_inputs, train_labels)
+        print(test(model, test_inputs, test_labels))    
+    pass
 
 class Model(tf.keras.Model):
     def __init__(self):
