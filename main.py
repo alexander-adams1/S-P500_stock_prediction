@@ -45,12 +45,14 @@ def main():
     model = Model()
     num_batches = len(train_inputs) // model.batch_size
     test_batches = len(test_inputs) // model.batch_size
-    print(num_batches)
-    print(test_batches)
+    # print(num_batches)
+    # print(test_batches)
     for i in range(10):
-        train(model, train_inputs, train_labels, num_batches)
+        print(train(model, train_inputs, train_labels, num_batches))
+        print("finished epoch")
+        print(i)
     
-    # test(model, test_inputs, test_labels, test_batches)   
+    print(test(model, test_inputs, test_labels, test_batches))  
     
 
 
@@ -62,27 +64,21 @@ class Model(tf.keras.Model):
         self.flatten = tf.keras.layers.Flatten()
         self.conv_weights = tf.cast(tf.random.normal([3, 1, 4]), dtype='float64')
         # self.conv_layer = tf.keras.layers.Conv1D(filters=4, kernel_size=3, activation='relu', kernel_initializer=self.conv_weights)
-        self.dense = tf.keras.layers.Dense(1, activation = 'relu')
+        self.dense = tf.keras.layers.Dense(2, activation = 'relu')
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.003)
         
         # self.optimizer = tf.keras.optimizers.RMSprop(learning_rate = 0.003)
 
     def call(self, inputs):
-        print(np.shape(inputs)[0])
-        for i in range(np.shape(inputs)[0]):
-            inputs[i]
-            # print(np.shape(inputs[i]))
-            output = tf.transpose(inputs[i])
-            print(output[0])
-            train = tf.reshape(output[0], (1, 14, 1))
-            train = tf.cast(train, dtype = 'float64')
-            print('begin check')
-            print(self.conv_weights)
-            print('end check')
-            conv_layer = tf.nn.conv1d(train, filters = self.conv_weights, stride=1, padding='SAME')
-            flatten = self.flatten(conv_layer)
-            dense = self.dense(flatten)
-            print(output[1])
+
+        
+        # print('begin check')
+        # print(self.conv_weights)
+        # print('end check')
+        conv_layer = tf.nn.conv1d(inputs, filters = self.conv_weights, stride=1, padding='SAME')
+        flatten = self.flatten(conv_layer)
+        dense = self.dense(flatten)
+
             
         # for i in range(np.shape(inputs)[0]):
         # conv_layer = self.conv_layer(inputs)
@@ -131,16 +127,27 @@ def train(model, train_inputs, train_labels, num_batches):
         batch_end = (batch + 1) * model.batch_size
         batch_labels = train_labels[batch_start:batch_end]
         batch_inputs = train_inputs[batch_start:batch_end]
-        print(np.shape(batch_labels))
-        print(np.shape(batch_inputs))
-        
-        with tf.GradientTape() as tape:
-            logits = model.call(batch_inputs)
-            loss = model.loss(logits, batch_labels)
-            grads = tape.gradient(loss, model.trainable_variables)
-        model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
-        total_loss += loss
-    return total_loss
+        # print(np.shape(batch_labels))
+        # print(np.shape(batch_inputs))
+        for i in range(np.shape(batch_inputs)[0]):
+            # print(np.shape(inputs[i]))
+            output = tf.transpose(batch_inputs[i])
+            # print(output[0])
+            output = tf.reshape(output[0], (1, 14, 1))
+            output = tf.cast(output, dtype = 'float64')
+            with tf.GradientTape() as tape:
+                logits = model.call(output)
+                loss = model.loss(logits, batch_labels[i])
+                # print("logits")
+                # print(logits)
+                # print("logits")
+                # print("labels")
+                # print(batch_labels[i])
+                # print("labels")
+                grads = tape.gradient(loss, model.trainable_variables)
+            model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
+            total_loss += loss
+    return total_loss/135
     
 def test(model, test_inputs, test_labels, test_batches):
     accuracy = []
