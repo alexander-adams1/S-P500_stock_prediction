@@ -7,6 +7,7 @@ from preprocess import read_csv
 from preprocess import get_labels
 from preprocess import get_inputs
 from preprocess import pos_or_neg
+import random
 
 
 
@@ -25,28 +26,40 @@ def main():
     labels = sp500_labels
 
     # print(sp500_with_labels)
+    data = list(zip(inputs, labels))
+    random.shuffle(data)
+    
+    
+    shuffled_inputs, shuffled_labels = zip(*data)
+    print(np.shape(shuffled_inputs))
+    print(np.shape(shuffled_labels))
+    n  = int(len(shuffled_inputs) * 0.8)
+    
+    train_inputs = shuffled_inputs[: n]
+    test_inputs = shuffled_inputs[n: ]
+    train_labels = shuffled_labels[: n]
+    test_labels = shuffled_labels[n: ]
+    
 
-    train_inputs = None
-    train_labels = None
-    test_inputs = None
-    test_labels = None
-
-    # model = Model()
-    # for i in range(10):
-    #     train(model, inputs, labels)
-    #     print(test(model, test_inputs, test_labels))    
-    # pass
+    model = Model()
+    num_batches = len(train_inputs) // model.batch_size
+    for i in range(10):
+        train(model, train_inputs, train_labels, num_batches)
+        test(model, test_inputs, test_labels, num_batches)   
+    
 
 class Model(tf.keras.Model):
     def __init__(self):
         super(Model, self).__init__()
-        self.batch_size = 64
+        self.batch_size = 32
         self.loss_list = []
         self.flatten = tf.keras.layers.Flatten()
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.003)
+        # self.optimizer = tf.keras.optimizers.RMSprop(learning_rate = 0.003)
 
     def call(self):
-        pass
+        print(nice)
+        return 1
 
 
     def loss(self, logits, labels):
@@ -80,11 +93,36 @@ class Model(tf.keras.Model):
 
         
 
-def train():
-    pass
+def train(self, model, train_inputs, train_labels, num_batches):
+    total_loss = 0
 
-def test():
-    pass
+    for batch in range(num_batches):
+        batch_start = batch * model.batch_size
+        batch_end = (batch + 1) * model.batch_size
+        batch_labels = train_labels[batch_start:batch_end]
+        batch_inputs = train_inputs[batch_start:batch_end]
+        with tf.GradientTape() as tape:
+            logits = self.call(batch_inputs)
+            loss = model.loss(logits, batch_labels)
+            grads = tape.gradient(loss, model.trainable_variables)
+        model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
+        total_loss += loss
+    return total_loss
+    
+def test(self, model, test_inputs, test_labels, num_batches):
+    accuracy = []
+    for batch in range(num_batches):
+        batch_start = batch * model.batch_size
+        batch_end = (batch + 1) * model.batch_size
+        batch_labels = test_labels[batch_start:batch_end]
+        batch_inputs = test_inputs[batch_start:batch_end]
+        # with tf.GradientTape() as tape:
+        logits = self.call(batch_inputs)
+        accuracy.append(model.accuracy(logits, batch_labels))
+        # grads = tape.gradient(loss, model.trainable_variables)
+        # model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
+    accuracy = tf.math.reduce_mean(accuracy)
+    return accuracy
 
 
     
