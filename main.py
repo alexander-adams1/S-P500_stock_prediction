@@ -41,12 +41,14 @@ def main():
     test_labels = shuffled_labels[n: ]
     
 
+
     model = Model()
     num_batches = len(train_inputs) // model.batch_size
     for i in range(10):
         train(model, train_inputs, train_labels, num_batches)
         test(model, test_inputs, test_labels, num_batches)   
     
+
 
 class Model(tf.keras.Model):
     def __init__(self):
