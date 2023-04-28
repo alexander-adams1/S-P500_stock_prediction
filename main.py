@@ -44,9 +44,10 @@ def main():
 
     model = Model()
     num_batches = len(train_inputs) // model.batch_size
+    test_batches = len(test_inputs) // model.batch_size
     for i in range(10):
         train(model, train_inputs, train_labels, num_batches)
-        test(model, test_inputs, test_labels, num_batches)   
+        test(model, test_inputs, test_labels, test_batches)   
     
 
 
