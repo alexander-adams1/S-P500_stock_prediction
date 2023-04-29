@@ -47,12 +47,14 @@ def main():
     test_batches = len(test_inputs) // model.batch_size
     # print(num_batches)
     # print(test_batches)
-    for i in range(10):
+    for i in range(5):
         print(train(model, train_inputs, train_labels, num_batches))
         print("finished epoch")
         print(i)
+        print(test(model, test_inputs, test_labels, test_batches))  
+
     
-    print(test(model, test_inputs, test_labels, test_batches))  
+    # print(test(model, test_inputs, test_labels, test_batches))  
     
 
 
@@ -121,12 +123,16 @@ class Model(tf.keras.Model):
 
 def train(model, train_inputs, train_labels, num_batches):
     total_loss = 0
+    print(tf.shape(train_labels))
 
     for batch in range(num_batches):
         batch_start = batch * model.batch_size
         batch_end = (batch + 1) * model.batch_size
         batch_labels = train_labels[batch_start:batch_end]
         batch_inputs = train_inputs[batch_start:batch_end]
+        # print(batch_start)
+        # print(batch_end)
+        # print(batch_inputs)
         # print(np.shape(batch_labels))
         # print(np.shape(batch_inputs))
         for i in range(np.shape(batch_inputs)[0]):
@@ -138,13 +144,16 @@ def train(model, train_inputs, train_labels, num_batches):
             with tf.GradientTape() as tape:
                 logits = model.call(output)
                 loss = model.loss(logits, batch_labels[i])
+                # print(batch_labels[i])
+                # print(batch_labels.shape())
+                # print(loss)
                 # print("logits")
                 # print(logits)
                 # print("logits")
                 # print("labels")
                 # print(batch_labels[i])
                 # print("labels")
-                grads = tape.gradient(loss, model.trainable_variables)
+            grads = tape.gradient(loss, model.trainable_variables)
             model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
             total_loss += loss
     return total_loss/135
@@ -158,6 +167,7 @@ def test(model, test_inputs, test_labels, test_batches):
         batch_inputs = test_inputs[batch_start:batch_end]
         # with tf.GradientTape() as tape:
         logits = model.call(batch_inputs)
+        # print(model.accuracy(logits, batch_labels))
         accuracy.append(model.accuracy(logits, batch_labels))
         # grads = tape.gradient(loss, model.trainable_variables)
         # model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
