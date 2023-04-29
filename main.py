@@ -8,6 +8,8 @@ from preprocess import get_labels
 from preprocess import get_inputs
 from preprocess import pos_or_neg
 import random
+from sklearn.model_selection import train_test_split
+
 
 
 
@@ -25,20 +27,31 @@ def main():
     inputs = full_inputs
     labels = sp500_labels
 
-    # print(sp500_with_labels)
-    data = list(zip(inputs, labels))
-    random.shuffle(data)
+
+
+    # # print(sp500_with_labels)
+    # data = list(zip(inputs, labels))
+    # # print(data)
+    # data = tf.random.shuffle(data)
     
     
-    shuffled_inputs, shuffled_labels = zip(*data)
-    # print(np.shape(shuffled_inputs))
-    # print(np.shape(shuffled_labels))
-    n  = int(len(shuffled_inputs) * 0.8)
+    # shuffled_inputs, shuffled_labels = zip(*data)
+    # # print(np.shape(shuffled_inputs))
+    # # print(np.shape(shuffled_labels))
+    # n  = int(len(shuffled_inputs) * 0.8)
     
-    train_inputs = shuffled_inputs[: n]
-    test_inputs = shuffled_inputs[n: ]
-    train_labels = shuffled_labels[: n]
-    test_labels = shuffled_labels[n: ]
+    # train_inputs = shuffled_inputs[: n]
+    # test_inputs = shuffled_inputs[n: ]
+    # train_labels = shuffled_labels[: n]
+    # test_labels = shuffled_labels[n: ]
+
+    # print(tf.shape(train_inputs))
+
+    print(tf.shape(inputs))
+    print(tf.shape(labels))
+
+    train_inputs, test_inputs, train_labels, test_labels = train_test_split(inputs, labels, test_size=.2, shuffle=True)
+
     
 
 
@@ -123,40 +136,52 @@ class Model(tf.keras.Model):
 
 def train(model, train_inputs, train_labels, num_batches):
     total_loss = 0
-    print(tf.shape(train_labels))
+    # # print(tf.shape(train_labels))
 
-    for batch in range(num_batches):
-        batch_start = batch * model.batch_size
-        batch_end = (batch + 1) * model.batch_size
-        batch_labels = train_labels[batch_start:batch_end]
-        batch_inputs = train_inputs[batch_start:batch_end]
-        # print(batch_start)
-        # print(batch_end)
-        # print(batch_inputs)
-        # print(np.shape(batch_labels))
-        # print(np.shape(batch_inputs))
-        for i in range(np.shape(batch_inputs)[0]):
-            # print(np.shape(inputs[i]))
-            output = tf.transpose(batch_inputs[i])
-            # print(output[0])
-            output = tf.reshape(output[0], (1, 14, 1))
-            output = tf.cast(output, dtype = 'float64')
-            with tf.GradientTape() as tape:
-                logits = model.call(output)
-                loss = model.loss(logits, batch_labels[i])
-                # print(batch_labels[i])
-                # print(batch_labels.shape())
-                # print(loss)
-                # print("logits")
-                # print(logits)
-                # print("logits")
-                # print("labels")
-                # print(batch_labels[i])
-                # print("labels")
-            grads = tape.gradient(loss, model.trainable_variables)
-            model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
-            total_loss += loss
-    return total_loss/135
+    # for batch in range(num_batches):
+    #     batch_start = batch * model.batch_size
+    #     batch_end = (batch + 1) * model.batch_size
+    #     batch_labels = train_labels[batch_start:batch_end]
+    #     batch_inputs = train_inputs[batch_start:batch_end]
+    #     # print(batch_start)
+    #     # print(batch_end)
+    #     # print(batch_inputs)
+    #     # print(tf.shape(batch_labels))
+    #     # print(np.shape(batch_inputs))
+    #     for i in range(np.shape(batch_inputs)[0]):
+    #         # print(np.shape(inputs[i]))
+    #         output = tf.transpose(batch_inputs[i])
+    #         # print(output[0])
+    #         output = tf.reshape(output[0], (1, 14, 1))
+    #         output = tf.cast(output, dtype = 'float64')
+    #         with tf.GradientTape() as tape:
+    #             logits = model.call(output)
+    #             loss = model.loss(logits, batch_labels)
+    #             # print(batch_labels[i])
+    #             # print(batch_labels.shape())
+    #             # print(loss)
+    #             # print("logits")
+    #             # print(logits)
+    #             # print("logits")
+    #             # print("labels")
+    #             # print(batch_labels[i])
+    #             # print("labels")
+    #         grads = tape.gradient(loss, model.trainable_variables)
+    #         model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
+    #         total_loss += loss
+    # print("lans")
+    # print(tf.shape(train_labels)[0])
+    # print("fini")
+    loss_list = []
+    for b, b1 in enumerate(range(model.batch_size, tf.shape(train_labels)[0] + 1, model.batch_size)):
+        b0 = b1 - model.batch_size
+        with tf.GradientTape() as tape:
+            pred = model.call(train_inputs[b0:b1])
+            loss = model.loss(pred, train_labels[b0:b1])    
+        gradients = tape.gradient(loss, model.trainable_variables)
+        model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+        loss_list.append(loss)
+    return loss_list
     
 def test(model, test_inputs, test_labels, test_batches):
     accuracy = []
