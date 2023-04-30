@@ -21,10 +21,10 @@ def main():
     sp500_labels = get_labels(sp500_dataframe)
     # aapl_with_labels = get_labels(aapl_dataframe)
 
-    full_inputs = get_inputs(sp500_dataframe)
+    close_inputs, vol_inputs = get_inputs(sp500_dataframe)
     # apple_inputs = get_inputs(aapl_dataframe)
 
-    inputs = full_inputs
+    # inputs = full_inputs
     labels = sp500_labels
 
 
@@ -47,24 +47,26 @@ def main():
 
     # print(tf.shape(train_inputs))
 
-    print(tf.shape(inputs))
-    print(tf.shape(labels))
+    # print(tf.shape(inputs))
+    # print(tf.shape(labels))
 
-    train_inputs, test_inputs, train_labels, test_labels = train_test_split(inputs, labels, test_size=.2, shuffle=True)
+    train_close_inputs, test_close_inputs, train_close_labels, test_close_labels = train_test_split(close_inputs, labels, test_size=.2, shuffle=True)
 
-    
-
+    train_close_inputs = tf.convert_to_tensor(train_close_inputs)
+    test_close_inputs = tf.convert_to_tensor(test_close_inputs)
+    train_close_labels = tf.convert_to_tensor(train_close_labels)
+    test_close_labels = tf.convert_to_tensor(test_close_labels)
 
     model = Model()
-    num_batches = len(train_inputs) // model.batch_size
-    test_batches = len(test_inputs) // model.batch_size
+    num_batches = len(train_close_inputs) // model.batch_size
+    test_batches = len(test_close_inputs) // model.batch_size
     # print(num_batches)
     # print(test_batches)
     for i in range(5):
-        print(train(model, train_inputs, train_labels, num_batches))
+        print(train(model, train_close_inputs, train_close_labels, num_batches))
         print("finished epoch")
         print(i)
-        print(test(model, test_inputs, test_labels, test_batches))  
+        print(test(model, test_close_inputs, test_close_labels, test_batches))  
 
     
     # print(test(model, test_inputs, test_labels, test_batches))  
