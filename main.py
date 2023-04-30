@@ -9,6 +9,8 @@ from preprocess import get_inputs
 from preprocess import pos_or_neg
 import random
 from sklearn.model_selection import train_test_split
+import statistics
+
 
 
 
@@ -51,23 +53,37 @@ def main():
     # print(tf.shape(labels))
 
     train_close_inputs, test_close_inputs, train_close_labels, test_close_labels = train_test_split(close_inputs, labels, test_size=.2, shuffle=True)
+    train_vol_inputs, test_vol_inputs, train_vol_labels, test_vol_labels = train_test_split(vol_inputs, labels, test_size=.2, shuffle=True)
 
-    train_close_inputs = tf.convert_to_tensor(train_close_inputs)
-    test_close_inputs = tf.convert_to_tensor(test_close_inputs)
+
+    train_close_inputs = tf.convert_to_tensor(np.reshape(train_close_inputs, (-1, 14, 1)))
+    test_close_inputs = tf.convert_to_tensor(np.reshape(test_close_inputs, (-1, 14, 1)))
     train_close_labels = tf.convert_to_tensor(train_close_labels)
     test_close_labels = tf.convert_to_tensor(test_close_labels)
 
-    model = Model()
-    num_batches = len(train_close_inputs) // model.batch_size
-    test_batches = len(test_close_inputs) // model.batch_size
+    train_vol_inputs = tf.convert_to_tensor(np.reshape(train_vol_inputs, (-1, 14, 1)))
+    test_vol_inputs = tf.convert_to_tensor(np.reshape(test_vol_inputs, (-1, 14, 1)))
+    train_vol_labels = tf.convert_to_tensor(train_vol_labels)
+    test_vol_labels = tf.convert_to_tensor(test_vol_labels)
+
+    model_close = Model()
+    num_batches = len(train_close_inputs) // model_close.batch_size
+    test_batches = len(test_close_inputs) // model_close.batch_size
     # print(num_batches)
     # print(test_batches)
-    for i in range(5):
-        print(train(model, train_close_inputs, train_close_labels, num_batches))
+    # print(tf.shape(train_close_inputs))
+    for i in range(10):
+        print(train(model_close, train_close_inputs, train_close_labels, num_batches))
         print("finished epoch")
         print(i)
-        print(test(model, test_close_inputs, test_close_labels, test_batches))  
+        print(test(model_close, test_close_inputs, test_close_labels, test_batches))  
 
+    model_vol = Model()
+    for i in range(10):
+        print(train(model_vol, train_vol_inputs, train_vol_labels, num_batches))
+        print("finished epoch")
+        print(i)
+        print(test(model_vol, test_vol_inputs, test_vol_labels, test_batches))
     
     # print(test(model, test_inputs, test_labels, test_batches))  
     
@@ -183,7 +199,7 @@ def train(model, train_inputs, train_labels, num_batches):
         gradients = tape.gradient(loss, model.trainable_variables)
         model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
         loss_list.append(loss)
-    return loss_list
+    return statistics.fmean(loss_list)
     
 def test(model, test_inputs, test_labels, test_batches):
     accuracy = []
