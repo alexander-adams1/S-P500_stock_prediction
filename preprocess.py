@@ -33,27 +33,33 @@ def get_labels(dataframe):
         else:
             labels = np.append(labels, [0, 1])
     reshaped = np.reshape(labels, (-1, 2))
-    labels_tensor = tf.convert_to_tensor(reshaped)
+    # labels_tensor = tf.convert_to_tensor(reshaped)
     # print(labels_tensor.shape())
-    return labels_tensor
+    return reshaped
 
 def get_inputs(dataframe):
     #return inputs which should be converted from the passed in dataframe to a numpy array
     #also convert the labels in the dataframe as part of the array
     #returns the array we need
 
-    df = dataframe[['Adj Close', 'Volume']]
-    modified_df = []
+    # df = dataframe[['Adj Close', 'Volume']]
+    close_df = dataframe[['Adj Close']]
+    volume_df = dataframe[['Volume']]
+    close_modified_df = []
+    volume_modified_df = []
     
-    for i in range(len(df)):
+    for i in range(len(close_df)):
         if i > 13:
-            modified_df = np.append(modified_df, df[i-14:i])
+            close_modified_df = np.append(close_modified_df, close_df[i-14:i])
+            volume_modified_df = np.append(volume_modified_df, volume_df[i-14:i])
     
-    reshaped_df = np.reshape(modified_df, (-1, 14, 2))
+    close_reshaped_df = np.reshape(close_modified_df, (-1, 14))
+    volume_reshaped_df = np.reshape(volume_modified_df, (-1, 14))
 
-    inputs = tf.convert_to_tensor(reshaped_df)
+    # close_inputs = tf.convert_to_tensor(close_reshaped_df)
+    # volume_inputs = tf.convert_to_tensor(volume_reshaped_df)
 
-    return inputs
+    return close_reshaped_df, volume_reshaped_df
 
 
 def pos_or_neg(a):
