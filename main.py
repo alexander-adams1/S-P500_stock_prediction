@@ -98,7 +98,7 @@ class Model(tf.keras.Model):
         self.conv_weights = tf.cast(tf.random.normal([3, 1, 4]), dtype='float64')
         # self.conv_layer = tf.keras.layers.Conv1D(filters=4, kernel_size=3, activation='relu', kernel_initializer=self.conv_weights)
         self.dense = tf.keras.layers.Dense(2, activation = 'relu')
-        self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.003)
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.005)
         
         # self.optimizer = tf.keras.optimizers.RMSprop(learning_rate = 0.003)
 
@@ -197,25 +197,40 @@ def train(model, train_inputs, train_labels, num_batches):
             pred = model.call(train_inputs[b0:b1])
             loss = model.loss(pred, train_labels[b0:b1])    
         gradients = tape.gradient(loss, model.trainable_variables)
+        # print(gradients)
         model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
         loss_list.append(loss)
     return statistics.fmean(loss_list)
+
+
     
 def test(model, test_inputs, test_labels, test_batches):
     accuracy = []
-    for batch in range(test_batches):
-        batch_start = batch * model.batch_size
-        batch_end = (batch + 1) * model.batch_size
-        batch_labels = test_labels[batch_start:batch_end]
-        batch_inputs = test_inputs[batch_start:batch_end]
-        # with tf.GradientTape() as tape:
-        logits = model.call(batch_inputs)
-        # print(model.accuracy(logits, batch_labels))
-        accuracy.append(model.accuracy(logits, batch_labels))
-        # grads = tape.gradient(loss, model.trainable_variables)
-        # model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
+    for b, b1 in enumerate(range(model.batch_size, tf.shape(test_labels)[0] + 1, model.batch_size)):
+        b0 = b1 - model.batch_size
+        logits = model.call(test_inputs[b0:b1])
+        accuracy.append(model.accuracy(logits, test_labels[b0:b1]))
+    accuracy = tf.Variable(accuracy)
     accuracy = tf.math.reduce_mean(accuracy)
     return accuracy
+
+
+
+
+    # accuracy = []
+    # for batch in range(test_batches):
+    #     batch_start = batch * model.batch_size
+    #     batch_end = (batch + 1) * model.batch_size
+    #     batch_labels = test_labels[batch_start:batch_end]
+    #     batch_inputs = test_inputs[batch_start:batch_end]
+    #     # with tf.GradientTape() as tape:
+    #     logits = model.call(batch_inputs)
+    #     # print(model.accuracy(logits, batch_labels))
+    #     accuracy.append(model.accuracy(logits, batch_labels))
+    #     # grads = tape.gradient(loss, model.trainable_variables)
+    #     # model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
+    # accuracy = tf.math.reduce_mean(accuracy)
+    # return accuracy
 
 
     
