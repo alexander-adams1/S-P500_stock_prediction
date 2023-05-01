@@ -74,14 +74,16 @@ def main():
     # print(tf.shape(train_close_inputs))
     for i in range(10):
         print(train(model_close, train_close_inputs, train_close_labels, num_batches))
-        print("finished epoch")
+        print("closing price: finished epoch")
         print(i)
-        print(test(model_close, test_close_inputs, test_close_labels, test_batches))  
+        print(test(model_close, test_close_inputs, test_close_labels, test_batches)) 
+
+
 
     model_vol = Model()
     for i in range(10):
         print(train(model_vol, train_vol_inputs, train_vol_labels, num_batches))
-        print("finished epoch")
+        print("volume: finished epoch")
         print(i)
         print(test(model_vol, test_vol_inputs, test_vol_labels, test_batches))
     
@@ -97,7 +99,8 @@ class Model(tf.keras.Model):
         self.flatten = tf.keras.layers.Flatten()
         self.conv_weights = tf.cast(tf.random.normal([3, 1, 4]), dtype='float64')
         # self.conv_layer = tf.keras.layers.Conv1D(filters=4, kernel_size=3, activation='relu', kernel_initializer=self.conv_weights)
-        self.dense = tf.keras.layers.Dense(2, activation = 'relu')
+        self.dense1 = tf.keras.layers.Dense(64, activation = 'relu')
+        self.dense2 = tf.keras.layers.Dense(2, activation='linear')
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.003)
         
         # self.optimizer = tf.keras.optimizers.RMSprop(learning_rate = 0.003)
@@ -110,14 +113,15 @@ class Model(tf.keras.Model):
         # print('end check')
         conv_layer = tf.nn.conv1d(inputs, filters = self.conv_weights, stride=1, padding='SAME')
         flatten = self.flatten(conv_layer)
-        dense = self.dense(flatten)
+        dense = self.dense1(flatten)
+        dense2 = self.dense2(dense)
 
             
         # for i in range(np.shape(inputs)[0]):
         # conv_layer = self.conv_layer(inputs)
         # flatten = self.flatten(inputs)
         # dense = self.dense(flatten)
-        return dense
+        return dense2
 
 
     def loss(self, logits, labels):
