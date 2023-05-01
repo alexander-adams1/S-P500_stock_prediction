@@ -98,7 +98,7 @@ class Model(tf.keras.Model):
         self.conv_weights = tf.cast(tf.random.normal([3, 1, 4]), dtype='float64')
         # self.conv_layer = tf.keras.layers.Conv1D(filters=4, kernel_size=3, activation='relu', kernel_initializer=self.conv_weights)
         self.dense = tf.keras.layers.Dense(2, activation = 'relu')
-        self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.005)
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.003)
         
         # self.optimizer = tf.keras.optimizers.RMSprop(learning_rate = 0.003)
 
