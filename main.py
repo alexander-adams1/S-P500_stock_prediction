@@ -10,6 +10,8 @@ from preprocess import pos_or_neg
 import random
 from sklearn.model_selection import train_test_split
 import statistics
+from matplotlib import pyplot as plt
+
 
 
 
@@ -95,31 +97,42 @@ def main():
     # test_labels = tf.reshape(test_labels, (-1, 2, 14))
     
     
-    
+    dual_model_loss = []
+    close_model_loss = []
+    vol_model_loss = []
     
     dual_model = Model()
     for i in range(10):
-        print(train_2(dual_model, train_inputs, train_labels))
-        print("closing price: finished epoch")
+        to_print, losses =  train_2(dual_model, train_inputs, train_labels)
+        print(to_print)
+        print("dual model: finished epoch")
         print(i)
+        dual_model_loss.append(losses)
+    visualize_loss(dual_model_loss)
     print(test_2(dual_model, test_inputs, test_labels)) 
         
     model_close = Model()  
     num_batches = len(train_close_inputs) // model_close.batch_size
     test_batches = len(test_close_inputs) // model_close.batch_size  
     for i in range(15):
-        print(train(model_close, train_close_inputs, train_close_labels, num_batches))
+        to_print1, losses1 = train(model_close, train_close_inputs, train_close_labels, num_batches)
+        print(to_print1)
         print("closing price: finished epoch")
         print(i)
+        close_model_loss.append(losses1)
+    visualize_loss(close_model_loss)
     print(test(model_close, test_close_inputs, test_close_labels, test_batches)) 
 
 
 
     model_vol = Model()
     for i in range(15):
-        print(train(model_vol, train_vol_inputs, train_vol_labels, num_batches))
+        to_print2, losses2 = train(model_vol, train_vol_inputs, train_vol_labels, num_batches)
+        print(to_print2)
         print("volume: finished epoch")
         print(i)
+        vol_model_loss.append(losses2) 
+    visualize_loss(vol_model_loss)
     print(test(model_vol, test_vol_inputs, test_vol_labels, test_batches))
     
     # print(test(model, test_inputs, test_labels, test_batches))  
@@ -217,6 +230,11 @@ class Model(tf.keras.Model):
 
 def train(model, train_inputs, train_labels, num_batches):
     total_loss = 0
+    indices = tf.range(len(train_inputs))
+    indices = tf.random.shuffle(indices)
+    train_inputs = tf.gather(train_inputs, indices)
+    train_labels = tf.gather(train_labels, indices)
+
     # # print(tf.shape(train_labels))
 
     # for batch in range(num_batches):
@@ -263,7 +281,8 @@ def train(model, train_inputs, train_labels, num_batches):
         # print(gradients)
         model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
         loss_list.append(loss)
-    return statistics.fmean(loss_list)
+    # visualize_loss(loss_list)
+    return (statistics.fmean(loss_list), loss_list)
 
     
 def test(model, test_inputs, test_labels, test_batches):
@@ -278,6 +297,10 @@ def test(model, test_inputs, test_labels, test_batches):
 
 def train_2(model, train_inputs, train_labels):
     loss_list = []
+    indices = tf.range(len(train_inputs))
+    indices = tf.random.shuffle(indices)
+    train_inputs = tf.gather(train_inputs, indices)
+    train_labels = tf.gather(train_labels, indices)
     for b, b1 in enumerate(range(model.batch_size, tf.shape(train_labels)[0] + 1, model.batch_size)):
         b0 = b1 - model.batch_size
         with tf.GradientTape() as tape:
@@ -288,7 +311,8 @@ def train_2(model, train_inputs, train_labels):
         # print(gradients)
         model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
         loss_list.append(loss)
-    return statistics.fmean(loss_list)
+    # visualize_loss(loss_list)
+    return (statistics.fmean(loss_list), loss_list)
 
 def test_2(model, test_inputs, test_labels):
     accuracy = []
@@ -301,7 +325,22 @@ def test_2(model, test_inputs, test_labels):
     return accuracy
 
 
+def visualize_loss(losses): 
+    """
+    Uses Matplotlib to visualize the losses of our model.
+    :param losses: list of loss data stored from train. Can use the model's loss_list 
+    field 
 
+    NOTE: DO NOT EDIT
+
+    :return: doesn't return anything, a plot should pop-up 
+    """
+    x = [i for i in range(len(losses))]
+    plt.plot(x, losses)
+    plt.title('Loss per batch')
+    plt.xlabel('Batch')
+    plt.ylabel('Loss')
+    plt.show()  
 
     # accuracy = []
     # for batch in range(test_batches):
