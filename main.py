@@ -102,8 +102,8 @@ def main():
     vol_model_loss = []
     
     dual_model = Model()
-    for i in range(10):
-        to_print, losses =  train_2(dual_model, train_inputs, train_labels)
+    for i in range(60):
+        to_print, losses = train_2(dual_model, train_inputs, train_labels)
         print(to_print)
         print("dual model: finished epoch")
         print(i)
@@ -114,8 +114,8 @@ def main():
     model_close = Model()  
     num_batches = len(train_close_inputs) // model_close.batch_size
     test_batches = len(test_close_inputs) // model_close.batch_size  
-    for i in range(15):
-        to_print1, losses1 = train(model_close, train_close_inputs, train_close_labels, num_batches)
+    for i in range(30):
+        to_print1, losses1 = train(model_close, train_close_inputs, train_close_labels, num_batches, is_vol=False)
         print(to_print1)
         print("closing price: finished epoch")
         print(i)
@@ -126,8 +126,8 @@ def main():
 
 
     model_vol = Model()
-    for i in range(15):
-        to_print2, losses2 = train(model_vol, train_vol_inputs, train_vol_labels, num_batches)
+    for i in range(30):
+        to_print2, losses2 = train(model_vol, train_vol_inputs, train_vol_labels, num_batches, is_vol=True)
         print(to_print2)
         print("volume: finished epoch")
         print(i)
@@ -147,9 +147,12 @@ class Model(tf.keras.Model):
         self.flatten = tf.keras.layers.Flatten()
         self.conv_weights = tf.cast(tf.random.normal([3, 1, 4]), dtype='float64')
         # self.conv_layer = tf.keras.layers.Conv1D(filters=4, kernel_size=3, activation='relu', kernel_initializer=self.conv_weights)
-        self.dense1 = tf.keras.layers.Dense(2, activation = 'relu')
+        self.dense1 = tf.keras.layers.Dense(64, activation = 'relu')
         self.dense2 = tf.keras.layers.Dense(2, activation='linear')
-        self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.003)
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.00005)
+        self.optimizer2 = tf.keras.optimizers.Adam(learning_rate=.0005)
+        self.optimizer_dual = tf.keras.optimizers.Adam(learning_rate=.000065)
+        # self.optimizer_volume = tf.keras.optimizers.Adam(learning_rate=.00008)
         
         # self.seq = tf.keras.Sequential([
         #     # tf.keras.layers.Input(shape=(14, 2)),
@@ -169,14 +172,14 @@ class Model(tf.keras.Model):
         conv_layer = tf.nn.conv1d(inputs, filters = self.conv_weights, stride=1, padding='SAME')
         flatten = self.flatten(conv_layer)
         dense = self.dense1(flatten)
-        # dense2 = self.dense2(dense)
+        dense2 = self.dense2(dense)
 
             
         # for i in range(np.shape(inputs)[0]):
         # conv_layer = self.conv_layer(inputs)
         # flatten = self.flatten(inputs)
         # dense = self.dense(flatten)
-        return dense
+        return dense2
     
     def call_2(self, inputs):
         inputs = np.array(inputs)
@@ -189,12 +192,12 @@ class Model(tf.keras.Model):
         flatten_second = self.flatten(conv_volume_layer)
         final_conv_layer = tf.concat([flatten_first, flatten_second], axis = -1)
         dense = self.dense1(final_conv_layer)
-        # dense2 = self.dense2(dense)
+        dense2 = self.dense2(dense)
         
         
         # outputs = self.seq(inputs)
         
-        return dense
+        return dense2
 
     def loss(self, logits, labels):
         """
@@ -228,49 +231,12 @@ class Model(tf.keras.Model):
 
         
 
-def train(model, train_inputs, train_labels, num_batches):
+def train(model, train_inputs, train_labels, num_batches, is_vol):
     total_loss = 0
     indices = tf.range(len(train_inputs))
     indices = tf.random.shuffle(indices)
     train_inputs = tf.gather(train_inputs, indices)
     train_labels = tf.gather(train_labels, indices)
-
-    # # print(tf.shape(train_labels))
-
-    # for batch in range(num_batches):
-    #     batch_start = batch * model.batch_size
-    #     batch_end = (batch + 1) * model.batch_size
-    #     batch_labels = train_labels[batch_start:batch_end]
-    #     batch_inputs = train_inputs[batch_start:batch_end]
-    #     # print(batch_start)
-    #     # print(batch_end)
-    #     # print(batch_inputs)
-    #     # print(tf.shape(batch_labels))
-    #     # print(np.shape(batch_inputs))
-    #     for i in range(np.shape(batch_inputs)[0]):
-    #         # print(np.shape(inputs[i]))
-    #         output = tf.transpose(batch_inputs[i])
-    #         # print(output[0])
-    #         output = tf.reshape(output[0], (1, 14, 1))
-    #         output = tf.cast(output, dtype = 'float64')
-    #         with tf.GradientTape() as tape:
-    #             logits = model.call(output)
-    #             loss = model.loss(logits, batch_labels)
-    #             # print(batch_labels[i])
-    #             # print(batch_labels.shape())
-    #             # print(loss)
-    #             # print("logits")
-    #             # print(logits)
-    #             # print("logits")
-    #             # print("labels")
-    #             # print(batch_labels[i])
-    #             # print("labels")
-    #         grads = tape.gradient(loss, model.trainable_variables)
-    #         model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
-    #         total_loss += loss
-    # print("lans")
-    # print(tf.shape(train_labels)[0])
-    # print("fini")
     loss_list = []
     for b, b1 in enumerate(range(model.batch_size, tf.shape(train_labels)[0] + 1, model.batch_size)):
         b0 = b1 - model.batch_size
@@ -279,7 +245,10 @@ def train(model, train_inputs, train_labels, num_batches):
             loss = model.loss(pred, train_labels[b0:b1])    
         gradients = tape.gradient(loss, model.trainable_variables)
         # print(gradients)
-        model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+        if is_vol:
+            model.optimizer2.apply_gradients(zip(gradients, model.trainable_variables))
+        else:
+            model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
         loss_list.append(loss)
     # visualize_loss(loss_list)
     return (statistics.fmean(loss_list), loss_list)
@@ -309,7 +278,7 @@ def train_2(model, train_inputs, train_labels):
             loss = model.loss(pred, train_labels[b0:b1])    
         gradients = tape.gradient(loss, model.trainable_variables)
         # print(gradients)
-        model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+        model.optimizer_dual.apply_gradients(zip(gradients, model.trainable_variables))
         loss_list.append(loss)
     # visualize_loss(loss_list)
     return (statistics.fmean(loss_list), loss_list)
@@ -337,94 +306,11 @@ def visualize_loss(losses):
     """
     x = [i for i in range(len(losses))]
     plt.plot(x, losses)
-    plt.title('Loss per batch')
-    plt.xlabel('Batch')
+    plt.title('Loss per epoch')
+    plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.show()  
 
-    # accuracy = []
-    # for batch in range(test_batches):
-    #     batch_start = batch * model.batch_size
-    #     batch_end = (batch + 1) * model.batch_size
-    #     batch_labels = test_labels[batch_start:batch_end]
-    #     batch_inputs = test_inputs[batch_start:batch_end]
-    #     # with tf.GradientTape() as tape:
-    #     logits = model.call(batch_inputs)
-    #     # print(model.accuracy(logits, batch_labels))
-    #     accuracy.append(model.accuracy(logits, batch_labels))
-    #     # grads = tape.gradient(loss, model.trainable_variables)
-    #     # model.optimizer.apply_gradients(zip(grads, model.trainable_variables))
-    # accuracy = tf.math.reduce_mean(accuracy)
-    # return accuracy
-
-
-    
-
-# df= pd.read_csv('sp500.csv')
-# dk = pd.read_csv('aapl.csv')
-# real_data = df[['Adj Close', 'Volume']]
-# df['dif in close'] = df['Adj Close'].diff()
-# df['labels'] = df.apply(lambda x: pos_or_neg(x['dif in close']), axis=1)
-# real_data_with_labels = df[['Adj Close', 'Volume', 'labels']]
-
-# # print(real_data_with_labels)
-
-# nice = dk[['Adj Close', 'Volume']]
-# dk['Prev_14_Close'] = dk['Close'].shift(14)
-# dk['Prev_14_Volume'] = dk['Volume'].shift(14)
-
-# dk.head(20)
-
-# Drop the rows with missing values (since the first 14 rows will have NaN values)
-# previous_close_points = dk['Prev_14_Close'].dropna().tolist()
-# previous_volume_points = dk['Prev_14_Volume'].dropna().tolist()
-# nparray = []
-# realarray = []
-# # print(nice)
-# # Print the resulting DataFrame
-# for i in range(len(nice)):
-#     if i > 13:
-    
-#         nparray = np.append(nparray, nice[i - 14: i])
-        
-# # print(nparray.shape)
-# reshaped_array = np.reshape(nparray, (-1, 14, 2))
-
-# # Print the reshaped array
-# print('test reshaped array shape: ', reshaped_array.shape)
-# # print(reshaped_array)
-
-# for i in range(len(real_data)):
-#     if i > 13:
-#         realarray = np.append(realarray, real_data[i - 14: i])
-        
-# real_reshape = np.reshape(realarray, (-1, 14, 2))
-# print(real_reshape.shape)
-# print(real_reshape)
-# # nice = tf.keras.layers.Reshape((-1, 14, 2))(nice)
-# # volume = df['Volume']
-# # adjusted_close = df['Adj Close']
-# # print(volume)
-# # print(adjusted_close)
-# # print(nice.shape)
-# # print(volume)
-# # print(adjusted_close)
-# pd.read_csv('aapl.csv').head()
-
-
-
-
-
-# apple_test = pd.read_csv('aapl.csv')
-# apple_test['dif in close'] = apple_test['Close'].diff()
-# apple_test['labels'] = apple_test.apply(lambda x: pos_or_neg(x['dif in close']), axis=1)
-# # print(apple_test.iloc[5])
-# # print(apple_test.iloc[2])
-# # print(apple_test.iloc[5].shift(3))
-# # apple_test['Close'].shift(1-14).head(20)
-# # print(apple_test['Close'].rolling(14))
-# # apple_test['inputs'] = apple_test['Close'].rolling(14).apply(lambda x: list(np.array(x.shift(1-14))))
-# # apple_test.head(20)
 
 
 if __name__ == '__main__':
