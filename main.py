@@ -19,8 +19,8 @@ from matplotlib import pyplot as plt
 
 
 def main():
-    sp500_dataframe = read_csv('sp500.csv')
-    aapl_dataframe = read_csv('aapl.csv')
+    sp500_dataframe = read_csv('CSCI1470-Final-Project-AA-HP-IS/sp500_post_crash.csv')
+    #aapl_dataframe = read_csv('aapl.csv')
 
     sp500_labels = get_labels(sp500_dataframe)
     # aapl_with_labels = get_labels(aapl_dataframe)
